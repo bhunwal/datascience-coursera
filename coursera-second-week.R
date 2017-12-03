@@ -1,4 +1,4 @@
-pollutantmean2 <- function(directory, pollutant, id=1:332) {
+pollutantmean <- function(directory, pollutant, id=1:332) {
   directory = paste(sep = "", directory, "/", sprintf("%03d.csv", 1:332))
   temp <- c()
   for(i in id) {
@@ -23,4 +23,17 @@ complete <- function(directory, id=1:332) {
   df = data.frame(ids, nobs)
   colnames(df) <- c("ids", "nobs")
   df
+}
+
+corr <-function(directory, threshhold=0) {
+  directory2 = paste(sep = "", directory, "/", sprintf("%03d.csv", 1:332))
+  cor_mat <- c()
+  for(i in 1:332) {
+    if(complete(directory, i)[1,"nobs"]>= threshhold) {
+      myData <- read.csv(directory2[i])
+      subset <- myData[complete.cases(myData),]
+      cor_mat <- c(cor_mat, cor(subset[,"sulfate"], subset[,"nitrate"]))
+    }
+  }
+  cor_mat
 }
