@@ -8,15 +8,17 @@ best <- function(state, outcome) {
    }
    ## rate
    sorted <- NULL
+   col_name <- NULL
    if(identical(outcome, "heart attack")) {
-     newdata2 <- subset(data, State == state, select=c(Hospital.30.Day.Death..Mortality..Rates.from.Heart.Attack, Hospital.Name))
+     col_name <- "Hospital.30.Day.Death..Mortality..Rates.from.Heart.Attack"
     }else if(identical(outcome, "heart failure")) {
-     newdata2 <- subset(data, State == state, select=c(Hospital.30.Day.Death..Mortality..Rates.from.Heart.Failure, Hospital.Name))
+      col_name <- "Hospital.30.Day.Death..Mortality..Rates.from.Heart.Failure"
     }else if(identical(outcome, "pneumonia")) {
-     newdata2 <- subset(data, State == state, select=c(Hospital.30.Day.Death..Mortality..Rates.from.Pneumonia, Hospital.Name))
+      col_name <- "Hospital.30.Day.Death..Mortality..Rates.from.Pneumonia"
    }else {
      err('invalid outcome')
    }
+   newdata2 <- subset(data, State == state, select=c(col_name, "Hospital.Name"))
    newdata2[,1] <- suppressWarnings(as.numeric(as.character(newdata2[,1])))
    ## Return hospital name in that state with lowest 30-day death
    newdata2 <- newdata2[order(newdata2[,1]),]
