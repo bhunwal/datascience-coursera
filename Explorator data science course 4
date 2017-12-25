@@ -1,0 +1,60 @@
+plot1 <- function(NEI) {
+   #NEI <- readRDS("summarySCC_PM25.rds")
+   NEI$year <- factor(NEI$year)
+   sumByYear <- aggregate(NEI$Emissions, by=list(Category=NEI$year), FUN=sum)
+   png(filename="plot1.png")
+   plot(sumByYear$Category, sumByYear$x,  main="Total US PM2.5 Emissions", "b", xlab="Year", ylab="Emissions (thousands of tons)", xaxt="n")
+   dev.off()
+   
+} 
+
+plot2 <- function(NEI) {
+   #NEI <- readRDS("summarySCC_PM25.rds")
+   NEI$year <- factor(NEI$year)
+   sumByYear <- aggregate(subset(NEI,fips == "24510")$Emissions, by=list(Category=subset(NEI,fips == "24510")$year), FUN=sum)
+   png(filename="plot2.png")
+   plot(sumByYear$Category, sumByYear$x, main="Total Baltimore PM2.5 Emissions", "b", xlab="Year", ylab="Emissions (thousand tons)",xaxt="n")
+   dev.off()
+} 
+
+plot3 <- function(NEI, SCC) {
+   #NEI <- readRDS("summarySCC_PM25.rds")
+   #SCC <- readRDS("Source_Classification_Code.rds")
+   alldata <- merge(NEI, SCC, by = "SCC")
+   alldataOnroadBalt <- subset(alldata, fips == "24510", c("Emissions", "year","type"))
+   sum <- aggregate(alldataOnroadBalt$Emissions, by=list(year=alldataOnroadBalt$year,sourceType = alldataOnroadBalt$type ), FUN=sum)
+   myPlot = ggplot(sum, aes(x = year, y=x)) + geom_line() +  aes(colour = sourceType) + geom_point( size=4, shape=21, fill="white") + xlab("Year") + ylab("Emissions (tons)") + ggtitle("Baltimore PM2.5 Emissions by Type and Year")
+   ggsave(filename="plot3.png", plot=myPlot)
+} 
+
+plot4 <- function(NEI, SCC) {
+   #NEI <- readRDS("summarySCC_PM25.rds")
+   #SCC <- readRDS("Source_Classification_Code.rds")
+   alldata <- merge(NEI, SCC, by = "SCC")
+   alldataCoalSubset <- alldata[grep("Coal", alldata$Short.Name), ]
+   sumByYear <- aggregate(alldataCoalSubset$Emissions, by=list(year=alldataCoalSubset$year), FUN=sum)
+   myPlot = ggplot(sumByYear, aes(x = year, y=x)) + geom_line() + geom_point( size=4, shape=21, fill="white") + xlab("Year") + ylab("Emissions (thousands of tons)") + ggtitle("Total United States PM2.5 Coal Emissions")
+   ggsave(filename="plot4.png", plot=myPlot)
+}
+
+plot5 <- function(NEI, SCC) {
+   #NEI <- readRDS("summarySCC_PM25.rds")
+   #SCC <- readRDS("Source_Classification_Code.rds")
+   alldata <- merge(NEI, SCC, by = "SCC")
+   alldataOnroadBalt <- subset(alldata, fips == "24510" & type =="ON-ROAD", c("Emissions", "year","type"))
+   sumByYear <- aggregate(alldataOnroadBalt$Emissions, by=list(year=alldataOnroadBalt$year), FUN=sum)
+   myPlot = ggplot(sumByYear, aes(x = year, y=x)) + geom_line() + geom_point( size=4, shape=21, fill="white") + xlab("Year") + ylab("Emissions (tons)") + ggtitle("Motor Vehicle PM2.5 Emissions in Baltimore")
+   ggsave(filename="plot5.png", plot=myPlot)
+}
+
+plot6 <- function(NEI, SCC) {
+   #NEI <- readRDS("summarySCC_PM25.rds")
+   #SCC <- readRDS("Source_Classification_Code.rds")
+   alldata <- merge(NEI, SCC, by = "SCC")
+   alldataOnroadBaltLA <- subset(alldata, (fips == "24510"|fips == "06037") & type =="ON-ROAD", c("Emissions", "year","type", "fips"))
+   sumByYear <- aggregate(alldataOnroadBaltLA$Emissions, by=list(year=alldataOnroadBaltLA$year, city = alldataOnroadBaltLA$fips), FUN=sum)
+   sumByYear$city <- factor(sumByYear$city, levels=c("06037", "24510"), labels=c("Los Angeles, CA", "Baltimore, MD"))
+   sumByYear$diff <- ave(sumByYear$x, factor(sumByYear$city), FUN=function(x) c(0,diff(x)))
+   myPlot = ggplot(sumByYear, aes(x = year, y=diff)) + aes(colour = city) + geom_line() + geom_point( size=4, shape=21, fill="white") + xlab("Year") + ylab("Change in Emissions (tons)") + ggtitle("Motor Vehicle PM2.5 Emissions Changes: Baltimore vs. LA")
+   ggsave(filename="plot6.png", plot=myPlot)
+}
